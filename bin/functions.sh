@@ -253,7 +253,7 @@ create_database() {
             print_message "   DB_DATABASE: $db_name" "$BLUE"
             print_message "   DB_USERNAME: $db_user" "$BLUE"
             print_message "   DB_PASSWORD: $db_pass" "$BLUE"
-        }
+        fi
 
         print_message "✅ Base de datos configurada correctamente." "$GREEN"
     else

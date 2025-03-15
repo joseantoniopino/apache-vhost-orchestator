@@ -3,12 +3,13 @@
 # Framework detection system following Open/Closed principle
 # Main detection module that integrates all detectors
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Import detector modules - each detector is a separate module
-source "$(dirname "$0")/laravel.sh"
+source "$SCRIPT_DIR/laravel.sh"
 # Future framework detectors would be added here:
 # source "$(dirname "$0")/symfony.sh"
 # source "$(dirname "$0")/codeigniter.sh"
-source "$(dirname "$0")/generic-php.sh"
+source "$SCRIPT_DIR/generic-php.sh"
 
 # Framework settings - each framework has specific settings
 declare -A FRAMEWORK_SETTINGS
