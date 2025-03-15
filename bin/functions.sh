@@ -246,7 +246,7 @@ create_database() {
             sed -i -E "s/^#?[[:space:]]*(DB_PASSWORD=).*$/DB_PASSWORD=$db_pass/" "$project_path/.env"
 
             print_message "✅ Archivo .env actualizado con credenciales de base de datos." "$GREEN"
-        } else {
+        else
             print_message "✅ Base de datos creada. Credenciales:" "$GREEN"
             print_message "   DB_HOST: 127.0.0.1" "$BLUE"
             print_message "   DB_PORT: 3306" "$BLUE"
