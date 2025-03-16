@@ -28,7 +28,12 @@ Para trabajar en este proyecto, necesitarás:
 - Git
 - Apache 2.4+
 - PHP 7.4+ (preferiblemente 8.x)
-- MySQL/MariaDB
+- Al menos uno de estos motores de base de datos (para pruebas):
+  - MySQL/MariaDB
+  - PostgreSQL
+  - SQLite
+  - SQL Server
+  - MongoDB
 - Bash 5.1+
 
 ### Configuración del entorno
@@ -45,6 +50,7 @@ Para trabajar en este proyecto, necesitarás:
    ```bash
    chmod +x bin/*.sh
    chmod +x modules/*/*.sh
+   chmod +x modules/database/engines/*.sh
    ```
 
 4. **Configura el repositorio upstream (opcional pero recomendado)**
@@ -67,6 +73,7 @@ Para trabajar en este proyecto, necesitarás:
    ```
    Usa un nombre descriptivo relacionado con tu contribución, por ejemplo:
    - `feature/soporte-symfony`
+   - `feature/soporte-oracle`
    - `fix/correccion-permisos-xdebug`
    - `docs/mejora-documentacion-modulos`
 
@@ -126,7 +133,7 @@ Para trabajar en este proyecto, necesitarás:
 1. **SOLID**
    - Responsabilidad Única: Cada script/módulo debe tener una sola responsabilidad
    - Abierto/Cerrado: Los módulos deben ser extensibles sin modificar el código existente
-   - Sustitución de Liskov: Los detectores de framework deben ser intercambiables
+   - Sustitución de Liskov: Los detectores de framework y motores de base de datos deben ser intercambiables
    - Segregación de Interfaces: Funciones agrupadas de manera coherente
    - Inversión de Dependencias: Módulos de alto nivel no dependen de detalles de implementación
 
@@ -144,7 +151,8 @@ Para trabajar en este proyecto, necesitarás:
 ```
 apache-vhost-orchestrator/
 ├── bin/                         # Scripts ejecutables
-│   ├── setup-environment.sh     # Script principal
+│   ├── vhost-manager.sh         # Punto de entrada unificado
+│   ├── setup-environment.sh     # Script de configuración
 │   ├── clear-environments.sh    # Script de limpieza
 │   └── functions.sh             # Funciones compartidas
 ├── modules/                     # Componentes modulares
@@ -152,6 +160,16 @@ apache-vhost-orchestrator/
 │   │   ├── detect.sh            # Sistema central de detección
 │   │   ├── laravel.sh           # Detector de Laravel
 │   │   └── generic-php.sh       # Soporte para PHP genérico
+│   ├── database/                # Sistema multi-motor de bases de datos
+│   │   ├── detect.sh            # Detección de motores disponibles
+│   │   ├── create-db.sh         # Creación de bases de datos
+│   │   ├── clean-db.sh          # Limpieza de bases de datos
+│   │   └── engines/             # Implementaciones específicas por motor
+│   │       ├── mysql.sh         # Motor MySQL
+│   │       ├── postgresql.sh    # Motor PostgreSQL
+│   │       ├── sqlite.sh        # Motor SQLite
+│   │       ├── sqlserver.sh     # Motor SQL Server
+│   │       └── mongodb.sh       # Motor MongoDB
 │   └── xdebug/                  # Configuración de Xdebug
 │       └── configure.sh         # Configuración inteligente de Xdebug
 └── templates/                   # Plantillas (para uso futuro)
@@ -212,10 +230,79 @@ configure_symfony() {
 }
 ```
 
+### Añadir soporte para un nuevo motor de base de datos
+
+1. **Crea un nuevo motor de base de datos**
+   - Añade un archivo `tu-motor.sh` en `modules/database/engines/`
+   - Implementa funciones `create_tu_motor_db()` y `clean_tu_motor_db()`
+   - Sigue el patrón de los motores existentes
+
+2. **Actualiza el sistema de detección**
+   - Modifica `modules/database/detect.sh` para detectar el nuevo motor
+   - Añade la detección en la función `detect_database_engines()`
+
+3. **Actualiza el sistema de creación y limpieza**
+   - Añade el nuevo motor en `create-db.sh` y `clean-db.sh`
+   - Mantén la consistencia con los motores existentes
+
+Ejemplo de implementación para un motor Oracle:
+```bash
+#!/bin/bash
+
+# Función específica para crear base de datos Oracle
+create_oracle_db() {
+    local project_name=$1
+    
+    # Normalizar nombre del proyecto para Oracle
+    local db_name=$(echo "${project_name}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+    local db_user="${project_name}_user"
+    local db_pass="password123"
+    
+    print_message "🗄️ Creando base de datos Oracle: $db_name" "$BLUE"
+    
+    # Verificar que Oracle está instalado y disponible
+    if ! command -v sqlplus &> /dev/null; then
+        print_message "   ❌ Cliente Oracle SQL*Plus no encontrado" "$RED"
+        return 1
+    fi
+    
+    # Solicitar credenciales de administrador
+    read -p "Introduce el usuario administrador de Oracle (system): " oracle_admin
+    oracle_admin=${oracle_admin:-"system"}
+    
+    read -sp "Introduce la contraseña del administrador: " oracle_admin_pass
+    echo ""
+    
+    # Implementa la lógica para crear usuario y base de datos
+    # ...
+    
+    # Devuelve la configuración necesaria
+    echo "DB_CONNECTION=oracle"
+    echo "DB_HOST=localhost"
+    echo "DB_PORT=1521"
+    echo "DB_SERVICE_NAME=$db_name"
+    echo "DB_USERNAME=$db_user"
+    echo "DB_PASSWORD=$db_pass"
+    
+    return 0
+}
+
+# Función para limpiar bases de datos Oracle
+clean_oracle_db() {
+    local project_name=$1
+    
+    # Implementa la lógica para limpiar usuario y tablespace
+    # ...
+    
+    return 0
+}
+```
+
 ### Añadir nuevas funcionalidades generales
 
 1. **Determina dónde debe ir tu funcionalidad**
    - Si es específica de un framework: en el módulo de ese framework
+   - Si es específica de un motor de base de datos: en el módulo de ese motor
    - Si es una utilidad general: en `functions.sh`
    - Si es una nueva categoría: crea un nuevo módulo en `modules/`
 
@@ -283,7 +370,12 @@ To work on this project, you'll need:
 - Git
 - Apache 2.4+
 - PHP 7.4+ (preferably 8.x)
-- MySQL/MariaDB
+- At least one of these database engines (for testing):
+  - MySQL/MariaDB
+  - PostgreSQL
+  - SQLite
+  - SQL Server
+  - MongoDB
 - Bash 5.1+
 
 ### Environment Setup
@@ -300,6 +392,7 @@ To work on this project, you'll need:
    ```bash
    chmod +x bin/*.sh
    chmod +x modules/*/*.sh
+   chmod +x modules/database/engines/*.sh
    ```
 
 4. **Set up the upstream repository (optional but recommended)**
@@ -322,6 +415,7 @@ To work on this project, you'll need:
    ```
    Use a descriptive name related to your contribution, for example:
    - `feature/symfony-support`
+   - `feature/oracle-support`
    - `fix/xdebug-permissions`
    - `docs/improve-modules-documentation`
 
@@ -381,7 +475,7 @@ To work on this project, you'll need:
 1. **SOLID**
    - Single Responsibility: Each script/module should have only one responsibility
    - Open/Closed: Modules should be extensible without modifying existing code
-   - Liskov Substitution: Framework detectors should be interchangeable
+   - Liskov Substitution: Framework detectors and database engines should be interchangeable
    - Interface Segregation: Functions grouped coherently
    - Dependency Inversion: High-level modules don't depend on implementation details
 
@@ -399,7 +493,8 @@ To work on this project, you'll need:
 ```
 apache-vhost-orchestrator/
 ├── bin/                         # Executable scripts
-│   ├── setup-environment.sh     # Main script
+│   ├── vhost-manager.sh         # Unified entry point
+│   ├── setup-environment.sh     # Setup script
 │   ├── clear-environments.sh    # Cleanup script
 │   └── functions.sh             # Shared functions
 ├── modules/                     # Modular components
@@ -407,6 +502,16 @@ apache-vhost-orchestrator/
 │   │   ├── detect.sh            # Core detection system
 │   │   ├── laravel.sh           # Laravel detector
 │   │   └── generic-php.sh       # Generic PHP support
+│   ├── database/                # Multi-engine database system
+│   │   ├── detect.sh            # Detection of available engines
+│   │   ├── create-db.sh         # Database creation
+│   │   ├── clean-db.sh          # Database cleanup
+│   │   └── engines/             # Engine-specific implementations
+│   │       ├── mysql.sh         # MySQL engine
+│   │       ├── postgresql.sh    # PostgreSQL engine
+│   │       ├── sqlite.sh        # SQLite engine
+│   │       ├── sqlserver.sh     # SQL Server engine
+│   │       └── mongodb.sh       # MongoDB engine
 │   └── xdebug/                  # Xdebug configuration
 │       └── configure.sh         # Intelligent Xdebug configuration
 └── templates/                   # Templates (for future use)
@@ -467,10 +572,79 @@ configure_symfony() {
 }
 ```
 
+### Adding Support for a New Database Engine
+
+1. **Create a new database engine implementation**
+   - Add a `your-engine.sh` file in `modules/database/engines/`
+   - Implement functions `create_your_engine_db()` and `clean_your_engine_db()`
+   - Follow the pattern of existing engines
+
+2. **Update the detection system**
+   - Modify `modules/database/detect.sh` to detect the new engine
+   - Add detection in the `detect_database_engines()` function
+
+3. **Update the creation and cleanup systems**
+   - Add the new engine in `create-db.sh` and `clean-db.sh`
+   - Maintain consistency with existing engines
+
+Example implementation for an Oracle engine:
+```bash
+#!/bin/bash
+
+# Function to create an Oracle database
+create_oracle_db() {
+    local project_name=$1
+    
+    # Normalize project name for Oracle
+    local db_name=$(echo "${project_name}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+    local db_user="${project_name}_user"
+    local db_pass="password123"
+    
+    print_message "🗄️ Creating Oracle database: $db_name" "$BLUE"
+    
+    # Verify that Oracle is installed and available
+    if ! command -v sqlplus &> /dev/null; then
+        print_message "   ❌ Oracle SQL*Plus client not found" "$RED"
+        return 1
+    fi
+    
+    # Request admin credentials
+    read -p "Enter Oracle admin username (system): " oracle_admin
+    oracle_admin=${oracle_admin:-"system"}
+    
+    read -sp "Enter admin password: " oracle_admin_pass
+    echo ""
+    
+    # Implement logic to create user and database
+    # ...
+    
+    # Return necessary configuration
+    echo "DB_CONNECTION=oracle"
+    echo "DB_HOST=localhost"
+    echo "DB_PORT=1521"
+    echo "DB_SERVICE_NAME=$db_name"
+    echo "DB_USERNAME=$db_user"
+    echo "DB_PASSWORD=$db_pass"
+    
+    return 0
+}
+
+# Function to clean Oracle databases
+clean_oracle_db() {
+    local project_name=$1
+    
+    # Implement logic to clean user and tablespace
+    # ...
+    
+    return 0
+}
+```
+
 ### Adding New General Functionality
 
 1. **Determine where your functionality should go**
    - If framework-specific: in that framework's module
+   - If database engine-specific: in that engine's module
    - If a general utility: in `functions.sh`
    - If a new category: create a new module in `modules/`
 

@@ -22,6 +22,7 @@ Sistema modular para la orquestación y gestión automática de entornos de desa
 - 🗄️ **Sistema multi-motor de bases de datos**: Soporte para MySQL, PostgreSQL, SQLite, SQL Server y MongoDB
 - 📋 **Generación de estructura de proyectos**: Para proyectos PHP nativos, ofrece crear una estructura recomendada de directorios
 - 🧹 **Limpieza de entornos**: Elimina fácilmente todos los recursos configurados cuando ya no se necesitan
+- 🔄 **Punto de entrada unificado**: Interfaz interactiva que simplifica tanto la creación como la limpieza de entornos
 
 ## 📋 Requisitos previos
 
@@ -47,49 +48,65 @@ cd apache-vhost-orchestrator
 2. Otorga permisos de ejecución a los scripts:
 ```bash
 chmod +x bin/*.sh
+chmod +x modules/*/*.sh
+chmod +x modules/database/engines/*.sh
 ```
 
 3. (Opcional) Configura un alias para facilitar el acceso:
 ```bash
-echo 'alias vhost-setup="sudo /ruta/a/apache-vhost-orchestrator/bin/setup-environment.sh"' >> ~/.bashrc
-echo 'alias vhost-clear="sudo /ruta/a/apache-vhost-orchestrator/bin/clear-environments.sh"' >> ~/.bashrc
+echo 'alias vhost-manager="sudo /ruta/a/apache-vhost-orchestrator/bin/vhost-manager.sh"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
 ## 🚀 Uso
 
-### Configurar un nuevo entorno
+### Punto de entrada unificado (recomendado)
 
+```bash
+sudo ./bin/vhost-manager.sh
+```
+
+Este script te presentará un menú interactivo para seleccionar la acción que deseas realizar:
+1. Configurar un nuevo entorno de desarrollo
+2. Limpiar entornos existentes
+3. Salir
+
+### Acceso directo a funcionalidades específicas
+
+También puedes acceder directamente a cada funcionalidad con parámetros:
+
+```bash
+# Ir directamente a la configuración de entorno
+sudo ./bin/vhost-manager.sh --setup
+
+# Ir directamente a la limpieza de entornos
+sudo ./bin/vhost-manager.sh --clean
+
+# Ver la ayuda del script
+sudo ./bin/vhost-manager.sh --help
+```
+
+### Uso de scripts individuales (método alternativo)
+
+Si prefieres utilizar los scripts individuales directamente:
+
+#### Configurar un nuevo entorno
 ```bash
 sudo ./bin/setup-environment.sh
 ```
 
-El script te guiará a través de un proceso interactivo para:
-1. Introducir el nombre del proyecto
-2. Especificar la ruta del proyecto
-3. Definir un dominio local (por defecto nombreproyecto.test)
-4. El script detectará automáticamente si es un proyecto Laravel o PHP nativo
-5. Configurará hosts virtuales, entradas DNS, permisos, Xdebug, etc.
-6. Opcionalmente, detectará los motores de bases de datos disponibles y te permitirá crear una base de datos con el motor que prefieras
-
-### Limpiar un entorno
-
+#### Limpiar un entorno
 ```bash
 sudo ./bin/clear-environments.sh
 ```
-
-El script solicitará los dominios a limpiar y eliminará:
-- Hosts virtuales de Apache
-- Entradas en `/etc/hosts`
-- Directorios de proyectos (opcional)
-- Bases de datos y usuarios de diferentes motores (opcional)
 
 ## 📂 Estructura del proyecto
 
 ```
 apache-vhost-orchestrator/
 ├── bin/                         # Scripts ejecutables
-│   ├── setup-environment.sh     # Script principal
+│   ├── vhost-manager.sh         # Punto de entrada unificado
+│   ├── setup-environment.sh     # Script de configuración
 │   ├── clear-environments.sh    # Script de limpieza
 │   └── functions.sh             # Funciones compartidas
 ├── modules/                     # Componentes modulares
@@ -124,10 +141,32 @@ El sistema sigue los principios SOLID:
 
 ## ⚙️ Ejemplos
 
-### Configuración de un proyecto Laravel existente con selección de base de datos
+### Uso del punto de entrada unificado
 
 ```bash
-sudo ./bin/setup-environment.sh
+sudo ./bin/vhost-manager.sh
+```
+
+```
+🚀 APACHE VHOST ORCHESTRATOR
+➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖
+Sistema de gestión de entornos de desarrollo web
+Optimizado para proyectos PHP y Laravel
+
+📋 ¿Qué acción deseas realizar?
+1. Configurar un nuevo entorno de desarrollo
+2. Limpiar entornos existentes
+3. Salir
+Selecciona una opción [1-3]: 1
+
+🔧 Iniciando configuración de nuevo entorno...
+[El flujo continúa con la configuración de un nuevo entorno]
+```
+
+### Configuración de un proyecto Laravel con selección de base de datos
+
+```bash
+sudo ./bin/vhost-manager.sh --setup
 ```
 
 ```
@@ -161,7 +200,7 @@ Selecciona el motor de base de datos a utilizar:
 ### Limpieza de un proyecto con múltiples bases de datos
 
 ```bash
-sudo ./bin/clear-environments.sh
+sudo ./bin/vhost-manager.sh --clean
 ```
 
 ```
@@ -225,6 +264,7 @@ Modular system for automatic orchestration and management of web development env
 - 🗄️ **Multi-engine Database System**: Support for MySQL, PostgreSQL, SQLite, SQL Server, and MongoDB
 - 📋 **Project Structure Generation**: For native PHP projects, offers to create a recommended directory structure
 - 🧹 **Environment Cleanup**: Easily removes all configured resources when no longer needed
+- 🔄 **Unified Entry Point**: Interactive interface that simplifies both environment creation and cleanup
 
 ## 📋 Prerequisites
 
@@ -250,49 +290,65 @@ cd apache-vhost-orchestrator
 2. Grant execution permissions to scripts:
 ```bash
 chmod +x bin/*.sh
+chmod +x modules/*/*.sh
+chmod +x modules/database/engines/*.sh
 ```
 
 3. (Optional) Configure an alias for easy access:
 ```bash
-echo 'alias vhost-setup="sudo /path/to/apache-vhost-orchestrator/bin/setup-environment.sh"' >> ~/.bashrc
-echo 'alias vhost-clear="sudo /path/to/apache-vhost-orchestrator/bin/clear-environments.sh"' >> ~/.bashrc
+echo 'alias vhost-manager="sudo /path/to/apache-vhost-orchestrator/bin/vhost-manager.sh"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
 ## 🚀 Usage
 
-### Set up a new environment
+### Unified Entry Point (recommended)
 
+```bash
+sudo ./bin/vhost-manager.sh
+```
+
+This script will present an interactive menu to select the action you want to perform:
+1. Set up a new development environment
+2. Clean up existing environments
+3. Exit
+
+### Direct Access to Specific Functionalities
+
+You can also access each functionality directly with parameters:
+
+```bash
+# Go directly to environment setup
+sudo ./bin/vhost-manager.sh --setup
+
+# Go directly to environment cleanup
+sudo ./bin/vhost-manager.sh --clean
+
+# View script help
+sudo ./bin/vhost-manager.sh --help
+```
+
+### Using Individual Scripts (alternative method)
+
+If you prefer to use the individual scripts directly:
+
+#### Set up a new environment
 ```bash
 sudo ./bin/setup-environment.sh
 ```
 
-The script will guide you through an interactive process to:
-1. Enter the project name
-2. Specify the project path
-3. Define a local domain (default is projectname.test)
-4. The script will automatically detect if it's a Laravel or native PHP project
-5. It will configure virtual hosts, DNS entries, permissions, Xdebug, etc.
-6. Optionally, it will detect available database engines and let you create a database with your preferred engine
-
-### Clean up an environment
-
+#### Clean up an environment
 ```bash
 sudo ./bin/clear-environments.sh
 ```
-
-The script will ask for domains to clean up and will remove:
-- Apache virtual hosts
-- Entries in `/etc/hosts`
-- Project directories (optional)
-- Databases and users from different engines (optional)
 
 ## 📂 Project Structure
 
 ```
 apache-vhost-orchestrator/
 ├── bin/                         # Executable scripts
-│   ├── setup-environment.sh     # Main script
+│   ├── vhost-manager.sh         # Unified entry point
+│   ├── setup-environment.sh     # Setup script
 │   ├── clear-environments.sh    # Cleanup script
 │   └── functions.sh             # Shared functions
 ├── modules/                     # Modular components
@@ -327,10 +383,32 @@ The system follows SOLID principles:
 
 ## ⚙️ Examples
 
-### Setting up an existing Laravel project with database selection
+### Using the Unified Entry Point
 
 ```bash
-sudo ./bin/setup-environment.sh
+sudo ./bin/vhost-manager.sh
+```
+
+```
+🚀 APACHE VHOST ORCHESTRATOR
+➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖
+Web development environment management system
+Optimized for PHP and Laravel projects
+
+📋 What action would you like to perform?
+1. Set up a new development environment
+2. Clean up existing environments
+3. Exit
+Select an option [1-3]: 1
+
+🔧 Starting new environment setup...
+[The flow continues with setting up a new environment]
+```
+
+### Setting up a Laravel project with database selection
+
+```bash
+sudo ./bin/vhost-manager.sh --setup
 ```
 
 ```
@@ -364,7 +442,7 @@ Select the database engine to use:
 ### Cleaning up a project with multiple databases
 
 ```bash
-sudo ./bin/clear-environments.sh
+sudo ./bin/vhost-manager.sh --clean
 ```
 
 ```

@@ -2,7 +2,7 @@
 
 # Script de Limpieza de Entornos
 # Reemplaza el anterior sistema de rollback, siguiendo principios SOLID
-# Autor: Tu nombre
+# Autor: Jose Antonio Pino
 # Fecha: $(date +%Y-%m-%d)
 
 # Obtener el directorio donde se encuentra el script

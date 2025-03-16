@@ -2,7 +2,7 @@
 
 # Script para configurar entornos de desarrollo PHP/Laravel
 # Refactorizado siguiendo principios SOLID
-# Autor: Tu nombre
+# Autor: Jose Antonio Pino
 # Fecha: $(date +%Y-%m-%d)
 
 # Get the directory where the script is located
