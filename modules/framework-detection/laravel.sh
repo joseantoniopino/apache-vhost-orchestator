@@ -144,10 +144,12 @@ configure_laravel_vite() {
     print_message "   ✅ Vite configurado para dominio: $domain" "$GREEN"
 }
 
-# Configure Laravel .env file
+# Añadir dentro de configure_laravel() en laravel.sh, después de la línea que configura .env
+# Configure .env file
 configure_laravel_env() {
     local project_path=$1
     local domain=$2
+    local db_engine=$3  # Opcional, para cuando se pasa explícitamente
 
     print_message "   Configurando archivo .env..." "$BLUE"
 
@@ -168,8 +170,93 @@ configure_laravel_env() {
     # Update APP_URL
     sed -i -E "s|^#?[[:space:]]*(APP_URL=).*|APP_URL=http://$domain|g" "$env_file"
 
-    # Ensure MySQL is set as DB_CONNECTION
-    sed -i -E 's/^#?[[:space:]]*(DB_CONNECTION=).*$/DB_CONNECTION=mysql/' "$env_file"
-
     print_message "   ✅ Archivo .env configurado" "$GREEN"
+}
+
+# Función para configurar .env de Laravel según el motor de base de datos
+configure_laravel_db_env() {
+    local project_path=$1
+    local db_engine=$2
+    local db_name=$3
+    local db_user=$4
+    local db_pass=$5
+    local db_host=$6
+    local db_port=$7
+    local db_file=$8  # Para SQLite
+
+    local env_file="$project_path/.env"
+
+    print_message "   Configurando parámetros de base de datos en .env..." "$BLUE"
+
+    # Primero establecer el motor de base de datos
+    case "$db_engine" in
+        "mysql")
+            sed -i -E 's/^#?[[:space:]]*(DB_CONNECTION=).*$/DB_CONNECTION=mysql/' "$env_file"
+            ;;
+        "postgresql")
+            sed -i -E 's/^#?[[:space:]]*(DB_CONNECTION=).*$/DB_CONNECTION=pgsql/' "$env_file"
+            ;;
+        "sqlite")
+            sed -i -E 's/^#?[[:space:]]*(DB_CONNECTION=).*$/DB_CONNECTION=sqlite/' "$env_file"
+            ;;
+        "sqlserver")
+            sed -i -E 's/^#?[[:space:]]*(DB_CONNECTION=).*$/DB_CONNECTION=sqlsrv/' "$env_file"
+            ;;
+        "mongodb")
+            sed -i -E 's/^#?[[:space:]]*(DB_CONNECTION=).*$/DB_CONNECTION=mongodb/' "$env_file"
+            ;;
+    esac
+
+    # Configurar el resto de parámetros según el motor
+    case "$db_engine" in
+        "mysql"|"postgresql"|"sqlserver")
+            # Descomentamos y configuramos host, puerto, nombre, usuario y contraseña
+            sed -i -E 's/^#?[[:space:]]*(DB_HOST=).*$/DB_HOST='$db_host'/' "$env_file"
+            sed -i -E 's/^#?[[:space:]]*(DB_PORT=).*$/DB_PORT='$db_port'/' "$env_file"
+            sed -i -E 's/^#?[[:space:]]*(DB_DATABASE=).*$/DB_DATABASE='$db_name'/' "$env_file"
+            sed -i -E 's/^#?[[:space:]]*(DB_USERNAME=).*$/DB_USERNAME='$db_user'/' "$env_file"
+            sed -i -E 's/^#?[[:space:]]*(DB_PASSWORD=).*$/DB_PASSWORD='$db_pass'/' "$env_file"
+            ;;
+
+        "sqlite")
+            # Para SQLite, comentamos los parámetros innecesarios
+            sed -i -E '/^DB_HOST=/s/^/#/' "$env_file"
+            sed -i -E '/^DB_PORT=/s/^/#/' "$env_file"
+            sed -i -E '/^DB_USERNAME=/s/^/#/' "$env_file"
+            sed -i -E '/^DB_PASSWORD=/s/^/#/' "$env_file"
+
+            # Y establecemos la ruta del archivo de base de datos
+            if grep -q "^#\?[[:space:]]*DB_DATABASE=" "$env_file"; then
+                # Si existe, lo actualizamos
+                sed -i -E 's|^#?[[:space:]]*(DB_DATABASE=).*$|DB_DATABASE='$db_file'|' "$env_file"
+            else
+                # Si no existe, lo añadimos
+                echo "DB_DATABASE=$db_file" >> "$env_file"
+            fi
+            ;;
+
+        "mongodb")
+            # Para MongoDB, configuramos los parámetros específicos
+            sed -i -E 's/^#?[[:space:]]*(DB_HOST=).*$/DB_HOST='$db_host'/' "$env_file"
+            sed -i -E 's/^#?[[:space:]]*(DB_PORT=).*$/DB_PORT='$db_port'/' "$env_file"
+            sed -i -E 's/^#?[[:space:]]*(DB_DATABASE=).*$/DB_DATABASE='$db_name'/' "$env_file"
+
+            # Verificamos si necesitamos autenticación
+            if [ -n "$db_user" ] && [ -n "$db_pass" ]; then
+                sed -i -E 's/^#?[[:space:]]*(DB_USERNAME=).*$/DB_USERNAME='$db_user'/' "$env_file"
+                sed -i -E 's/^#?[[:space:]]*(DB_PASSWORD=).*$/DB_PASSWORD='$db_pass'/' "$env_file"
+            else
+                # Si no hay autenticación, comentamos estos campos
+                sed -i -E '/^DB_USERNAME=/s/^/#/' "$env_file"
+                sed -i -E '/^DB_PASSWORD=/s/^/#/' "$env_file"
+            fi
+
+            # Agregar parámetros específicos de MongoDB si no existen
+            if ! grep -q "MONGODB_AUTHENTICATION_DATABASE" "$env_file"; then
+                echo "MONGODB_AUTHENTICATION_DATABASE=admin" >> "$env_file"
+            fi
+            ;;
+    esac
+
+    print_message "   ✅ Parámetros de base de datos configurados correctamente para $db_engine" "$GREEN"
 }

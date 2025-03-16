@@ -175,90 +175,11 @@ EOF
 
 # Create database for the project
 create_database() {
-    local project_name=$1
-    local project_path=$2
-    local domain=$3
-    local framework=$4
-
-    # Ask if user wants to create a database
-    read -p "¿Quieres crear una base de datos para este proyecto? (s/n): " create_db
-    if [[ $create_db != "s" && $create_db != "S" ]]; then
-        return
+    if [ -z "$PROJECT_ROOT" ]; then
+        PROJECT_ROOT="$(dirname "$(dirname "$(readlink -f "$0")")")"
     fi
-
-    # Use project name as database name
-    local db_name="${project_name}"
-    local db_user="${project_name}_user"
-    local db_pass="password123"  # Simple password for local development
-
-    print_message "🗄️ Creando base de datos: $db_name" "$BLUE"
-
-    # Check if MySQL is installed
-    if ! command -v mysql &> /dev/null; then
-        warning_message "MySQL no está instalado. Saltando creación de base de datos."
-        return
-    fi
-
-    # Ask for MySQL root credentials if needed
-    local mysql_root_pass=""
-    local mysql_cmd="mysql"
-
-    # Try first without password
-    if ! mysql -u root -e "SELECT 1" &>/dev/null; then
-        print_message "Se requiere contraseña para el usuario root de MySQL." "$YELLOW"
-        read -sp "Introduce la contraseña de root para MySQL: " mysql_root_pass
-        echo ""
-
-        # Test if password works
-        if ! mysql -u root -p"$mysql_root_pass" -e "SELECT 1" &>/dev/null; then
-            warning_message "Contraseña incorrecta. No se puede acceder a MySQL."
-            return
-        fi
-
-        # Update MySQL command to use password
-        mysql_cmd="mysql -u root -p\"$mysql_root_pass\""
-    fi
-
-    # Create database
-    print_message "   Creando base de datos $db_name..." "$BLUE"
-    if eval "$mysql_cmd -e \"CREATE DATABASE IF NOT EXISTS \\\`$db_name\\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\""; then
-        # Create user and assign privileges
-        print_message "   Creando usuario $db_user con permisos..." "$BLUE"
-
-        # Drop user if exists to avoid errors
-        eval "$mysql_cmd -e \"DROP USER IF EXISTS '$db_user'@'localhost';\""
-        eval "$mysql_cmd -e \"CREATE USER '$db_user'@'localhost' IDENTIFIED BY '$db_pass';\""
-        eval "$mysql_cmd -e \"GRANT ALL PRIVILEGES ON \\\`$db_name\\\`.* TO '$db_user'@'localhost';\""
-        eval "$mysql_cmd -e \"FLUSH PRIVILEGES;\""
-
-        print_message "✅ Usuario $db_user creado con contraseña: $db_pass" "$GREEN"
-
-        # Update .env file for Laravel
-        if [ "$framework" == "laravel" ] && [ -f "$project_path/.env" ]; then
-            print_message "   Actualizando archivo .env con credenciales de base de datos..." "$BLUE"
-
-            # Use precise sed expressions to handle commented lines
-            sed -i -E 's/^#?[[:space:]]*(DB_CONNECTION=).*$/DB_CONNECTION=mysql/' "$project_path/.env"
-            sed -i -E 's/^#?[[:space:]]*(DB_HOST=).*$/DB_HOST=127.0.0.1/' "$project_path/.env"
-            sed -i -E 's/^#?[[:space:]]*(DB_PORT=).*$/DB_PORT=3306/' "$project_path/.env"
-            sed -i -E "s/^#?[[:space:]]*(DB_DATABASE=).*$/DB_DATABASE=$db_name/" "$project_path/.env"
-            sed -i -E "s/^#?[[:space:]]*(DB_USERNAME=).*$/DB_USERNAME=$db_user/" "$project_path/.env"
-            sed -i -E "s/^#?[[:space:]]*(DB_PASSWORD=).*$/DB_PASSWORD=$db_pass/" "$project_path/.env"
-
-            print_message "✅ Archivo .env actualizado con credenciales de base de datos." "$GREEN"
-        else
-            print_message "✅ Base de datos creada. Credenciales:" "$GREEN"
-            print_message "   DB_HOST: 127.0.0.1" "$BLUE"
-            print_message "   DB_PORT: 3306" "$BLUE"
-            print_message "   DB_DATABASE: $db_name" "$BLUE"
-            print_message "   DB_USERNAME: $db_user" "$BLUE"
-            print_message "   DB_PASSWORD: $db_pass" "$BLUE"
-        fi
-
-        print_message "✅ Base de datos configurada correctamente." "$GREEN"
-    else
-        warning_message "No se pudo crear la base de datos. Verifica tus permisos de MySQL."
-    fi
+    source "$PROJECT_ROOT/modules/database/create-db.sh"
+    create_database_enhanced "$@"
 }
 
 # Show final summary with next steps

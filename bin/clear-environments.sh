@@ -24,6 +24,14 @@ REAL_USER=""
 REAL_HOME=""
 domains=()
 
+# Base de directorios a comprobar (movido fuera de las funciones para ser global)
+directories_to_check=(
+    "$REAL_HOME/www"
+    "$REAL_HOME/www/laravel"
+    "/var/www"
+    "/var/www/html"
+)
+
 # Verificar si se ejecuta como root
 check_root() {
     if [ "$EUID" -ne 0 ]; then
@@ -39,6 +47,10 @@ get_real_user() {
 
     print_message "👤 Usuario real: $REAL_USER" "$BLUE"
     print_message "🏠 Directorio home: $REAL_HOME" "$BLUE"
+
+    # Actualizar los directorios con el home real
+    directories_to_check[0]="$REAL_HOME/www"
+    directories_to_check[1]="$REAL_HOME/www/laravel"
 }
 
 # Función para solicitar y procesar la lista de dominios
@@ -155,14 +167,6 @@ clean_hosts_file() {
 clean_project_directories() {
     print_message "🔄 Eliminando directorios de proyectos..." "$BLUE"
 
-    # Base de directorios a comprobar
-    directories_to_check=(
-        "$REAL_HOME/www"
-        "$REAL_HOME/www/laravel"
-        "/var/www"
-        "/var/www/html"
-    )
-
     for domain in "${domains[@]}"; do
         # Eliminar sufijo para obtener el nombre base
         domain_base="${domain%%.*}"
@@ -188,70 +192,31 @@ clean_project_directories() {
     print_message "✅ Directorios de proyectos procesados." "$GREEN"
 }
 
-# Eliminar bases de datos y usuarios de MySQL
-clean_mysql_databases() {
-    print_message "🔄 Limpiando bases de datos y usuarios de MySQL..." "$BLUE"
+# Limpiar bases de datos
+clean_databases() {
+    print_message "🔄 Limpiando bases de datos..." "$BLUE"
 
-    # Verificar si MySQL está instalado
-    if ! command -v mysql &> /dev/null; then
-        print_message "   MySQL no está instalado. Omitiendo limpieza de bases de datos." "$YELLOW"
-        return
-    fi
+    # Usar el nuevo sistema modular
+    source "$PROJECT_ROOT/modules/database/clean-db.sh"
 
-    # Pedir contraseña de root de MySQL
-    read -sp "Introduce la contraseña de root de MySQL (deja vacío si no hay): " mysql_pwd
-    echo ""
-
-    # Configurar comando de MySQL
-    mysql_cmd="mysql"
-    if [ -n "$mysql_pwd" ]; then
-        mysql_cmd="mysql -u root -p'$mysql_pwd'"
-    fi
-
-    # Probar conexión MySQL
-    if ! eval "$mysql_cmd -e 'SELECT 1'" > /dev/null 2>&1; then
-        print_message "   No se pudo conectar a MySQL. Limpieza de base de datos omitida." "$YELLOW"
-        return
-    fi
-
-    # Procesar cada dominio
     for domain in "${domains[@]}"; do
         # Eliminar sufijo para obtener el nombre base
         domain_base="${domain%%.*}"
 
-        # Nombres de la base de datos y usuario
-        db_name="$domain_base"
-        db_user="${domain_base}_user"
-
-        # Verificar si la base de datos existe antes de eliminarla
-        if eval "$mysql_cmd -e \"SHOW DATABASES LIKE '$db_name'\"" | grep -q "$db_name"; then
-            print_message "   ¿Eliminar base de datos: $db_name? (s/n)" "$YELLOW"
-            read -p "> " confirm_delete_db
-
-            if [[ $confirm_delete_db == "s" || $confirm_delete_db == "S" ]]; then
-                print_message "   Eliminando base de datos: $db_name" "$BLUE"
-                eval "$mysql_cmd -e \"DROP DATABASE \\\`$db_name\\\`;\""
-                print_message "   ✅ Base de datos eliminada" "$GREEN"
-            else
-                print_message "   Se omite la eliminación de la base de datos $db_name" "$YELLOW"
+        # También pasar la ruta del proyecto si está disponible
+        local project_path=""
+        for dir in "${directories_to_check[@]}"; do
+            if [ -d "$dir/$domain_base" ]; then
+                project_path="$dir/$domain_base"
+                break
             fi
-        else
-            print_message "   Base de datos no encontrada: $db_name" "$YELLOW"
-        fi
+        done
 
-        # Verificar si el usuario existe antes de eliminarlo
-        if eval "$mysql_cmd -e \"SELECT User FROM mysql.user WHERE User='$db_user'\"" | grep -q "$db_user"; then
-            print_message "   Eliminando usuario MySQL: $db_user" "$BLUE"
-            eval "$mysql_cmd -e \"DROP USER IF EXISTS '$db_user'@'localhost';\""
-            print_message "   ✅ Usuario eliminado" "$GREEN"
-        else
-            print_message "   Usuario MySQL no encontrado: $db_user" "$YELLOW"
-        fi
+        # Llamar a la función mejorada
+        clean_database_enhanced "$domain_base" "$project_path"
     done
 
-    # Actualizar privilegios para aplicar cambios
-    eval "$mysql_cmd -e \"FLUSH PRIVILEGES;\""
-    print_message "✅ Bases de datos y usuarios de MySQL limpiados." "$GREEN"
+    print_message "✅ Limpieza de bases de datos completada." "$GREEN"
 }
 
 # Verificar si quedan otros entornos
@@ -298,7 +263,7 @@ main() {
     print_message "  - Hosts virtuales de Apache" "$YELLOW"
     print_message "  - Entradas en /etc/hosts" "$YELLOW"
     print_message "  - Directorios de proyectos" "$YELLOW"
-    print_message "  - Bases de datos y usuarios de MySQL" "$YELLOW"
+    print_message "  - Bases de datos (MySQL, PostgreSQL, SQLite, SQL Server, MongoDB)" "$YELLOW"
     read -p "¿Estás seguro de que quieres continuar? (s/n): " confirm
     if [[ $confirm != "s" && $confirm != "S" ]]; then
         print_message "Operación cancelada." "$BLUE"
@@ -309,7 +274,7 @@ main() {
     clean_apache_vhosts
     clean_hosts_file
     clean_project_directories
-    clean_mysql_databases
+    clean_databases
 
     # Preguntar si quiere verificar otros entornos
     read -p "¿Quieres verificar si existen otros entornos de prueba? (s/n): " check_others
