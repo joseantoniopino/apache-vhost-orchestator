@@ -247,19 +247,12 @@ git clone https://github.com/your-username/apache-vhost-orchestrator.git
 cd apache-vhost-orchestrator
 ```
 
-2. Set up the database module:
-```bash
-cd modules/database
-chmod +x setup.sh
-./setup.sh
-```
-
-3. Grant execution permissions to scripts:
+2. Grant execution permissions to scripts:
 ```bash
 chmod +x bin/*.sh
 ```
 
-4. (Optional) Configure an alias for easy access:
+3. (Optional) Configure an alias for easy access:
 ```bash
 echo 'alias vhost-setup="sudo /path/to/apache-vhost-orchestrator/bin/setup-environment.sh"' >> ~/.bashrc
 echo 'alias vhost-clear="sudo /path/to/apache-vhost-orchestrator/bin/clear-environments.sh"' >> ~/.bashrc
