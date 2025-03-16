@@ -19,7 +19,7 @@ Sistema modular para la orquestación y gestión automática de entornos de desa
 - 🌐 **Configuración de dominio local**: Configura automáticamente entradas en `/etc/hosts` y hosts virtuales de Apache
 - 🔒 **Gestión de permisos**: Establece los permisos adecuados según el tipo de proyecto
 - 🐞 **Configuración de Xdebug**: Instala y configura Xdebug de forma inteligente sin sobrescribir configuraciones personalizadas
-- 🗄️ **Creación de bases de datos**: Configura automáticamente bases de datos MySQL y usuarios con privilegios
+- 🗄️ **Sistema multi-motor de bases de datos**: Soporte para MySQL, PostgreSQL, SQLite, SQL Server y MongoDB
 - 📋 **Generación de estructura de proyectos**: Para proyectos PHP nativos, ofrece crear una estructura recomendada de directorios
 - 🧹 **Limpieza de entornos**: Elimina fácilmente todos los recursos configurados cuando ya no se necesitan
 
@@ -28,7 +28,12 @@ Sistema modular para la orquestación y gestión automática de entornos de desa
 - Sistema operativo Linux (probado en Ubuntu/Debian)
 - Apache 2.4 o superior
 - PHP 7.4 o superior (recomendado PHP 8.x)
-- MySQL/MariaDB
+- Al menos uno de los siguientes motores de bases de datos:
+  - MySQL/MariaDB
+  - PostgreSQL
+  - SQLite
+  - SQL Server
+  - MongoDB
 - Privilegios de administrador (sudo)
 
 ## 🔧 Instalación
@@ -65,7 +70,7 @@ El script te guiará a través de un proceso interactivo para:
 3. Definir un dominio local (por defecto nombreproyecto.test)
 4. El script detectará automáticamente si es un proyecto Laravel o PHP nativo
 5. Configurará hosts virtuales, entradas DNS, permisos, Xdebug, etc.
-6. Opcionalmente, creará una base de datos MySQL y un usuario
+6. Opcionalmente, detectará los motores de bases de datos disponibles y te permitirá crear una base de datos con el motor que prefieras
 
 ### Limpiar un entorno
 
@@ -77,7 +82,7 @@ El script solicitará los dominios a limpiar y eliminará:
 - Hosts virtuales de Apache
 - Entradas en `/etc/hosts`
 - Directorios de proyectos (opcional)
-- Bases de datos y usuarios de MySQL (opcional)
+- Bases de datos y usuarios de diferentes motores (opcional)
 
 ## 📂 Estructura del proyecto
 
@@ -92,6 +97,16 @@ apache-vhost-orchestrator/
 │   │   ├── detect.sh            # Sistema central de detección
 │   │   ├── laravel.sh           # Detector de Laravel
 │   │   └── generic-php.sh       # Soporte para PHP genérico
+│   ├── database/                # Sistema multi-motor de bases de datos
+│   │   ├── detect.sh            # Detección de motores disponibles
+│   │   ├── create-db.sh         # Creación de bases de datos
+│   │   ├── clean-db.sh          # Limpieza de bases de datos
+│   │   └── engines/             # Implementaciones específicas por motor
+│   │       ├── mysql.sh         # Motor MySQL
+│   │       ├── postgresql.sh    # Motor PostgreSQL
+│   │       ├── sqlite.sh        # Motor SQLite
+│   │       ├── sqlserver.sh     # Motor SQL Server
+│   │       └── mongodb.sh       # Motor MongoDB
 │   └── xdebug/                  # Configuración de Xdebug
 │       └── configure.sh         # Configuración inteligente de Xdebug
 └── templates/                   # Plantillas (para uso futuro)
@@ -102,14 +117,14 @@ apache-vhost-orchestrator/
 El sistema sigue los principios SOLID:
 
 - **S (Responsabilidad Única)**: Cada módulo tiene una única responsabilidad
-- **O (Abierto/Cerrado)**: El sistema de detección de frameworks es extensible sin modificar el código existente
-- **L (Sustitución de Liskov)**: Los diferentes detectores de framework son intercambiables
+- **O (Abierto/Cerrado)**: Los sistemas de detección de frameworks y bases de datos son extensibles sin modificar el código existente
+- **L (Sustitución de Liskov)**: Los diferentes detectores y motores son intercambiables
 - **I (Segregación de Interfaces)**: Las funciones están agrupadas de manera coherente
 - **D (Inversión de Dependencias)**: Los módulos de alto nivel no dependen de los detalles de implementación
 
 ## ⚙️ Ejemplos
 
-### Configuración de un proyecto Laravel existente
+### Configuración de un proyecto Laravel existente con selección de base de datos
 
 ```bash
 sudo ./bin/setup-environment.sh
@@ -129,27 +144,44 @@ Dominio local: mi-blog.test
 🔍 Detectando tipo de framework...
    ✅ Framework detectado: laravel
 
-# El script configurará automáticamente todo para un proyecto Laravel
+🔍 Detectando motores de bases de datos disponibles...
+   ✅ MySQL detectado
+   ✅ PostgreSQL detectado
+   ✅ SQLite detectado
+
+¿Quieres crear una base de datos para este proyecto? (s/n): s
+
+Selecciona el motor de base de datos a utilizar:
+1) mysql
+2) postgresql
+3) sqlite
+4) Ninguno
 ```
 
-### Configuración de un proyecto PHP nativo
+### Limpieza de un proyecto con múltiples bases de datos
 
 ```bash
-sudo ./bin/setup-environment.sh
+sudo ./bin/clear-environments.sh
 ```
 
 ```
-# Para un directorio vacío, ofrecerá crear una estructura recomendada
-El directorio del proyecto está vacío.
-¿Quieres crear una estructura recomendada para un proyecto PHP? (s/n): s
+Introduce los nombres de dominio a limpiar: mi-blog
 
-# Para un directorio con contenido, permitirá seleccionar el directorio público
-El directorio del proyecto ya contiene archivos.
-Selecciona el directorio que debe ser accesible públicamente:
-1) /home/usuario/www/proyecto (directorio raíz)
-2) /home/usuario/www/proyecto/public
-3) /home/usuario/www/proyecto/htdocs
-...
+Se procesarán los siguientes dominios:
+  - mi-blog.test
+¿Es correcta esta lista? (s/n): s
+
+⚠️ ADVERTENCIA: ¡Esto eliminará TODOS los rastros de los entornos seleccionados!
+Esto incluye:
+  - Hosts virtuales de Apache
+  - Entradas en /etc/hosts
+  - Directorios de proyectos
+  - Bases de datos (MySQL, PostgreSQL, SQLite, SQL Server, MongoDB)
+
+¿Estás seguro de que quieres continuar? (s/n): s
+
+# El script procederá a eliminar los recursos y preguntará qué motores 
+# de bases de datos deseas limpiar para este proyecto
 ```
 
 ## 📄 Licencia
@@ -190,7 +222,7 @@ Modular system for automatic orchestration and management of web development env
 - 🌐 **Local Domain Configuration**: Automatically configures entries in `/etc/hosts` and Apache virtual hosts
 - 🔒 **Permission Management**: Sets appropriate permissions based on project type
 - 🐞 **Xdebug Configuration**: Intelligently installs and configures Xdebug without overwriting custom configurations
-- 🗄️ **Database Creation**: Automatically configures MySQL databases and users with privileges
+- 🗄️ **Multi-engine Database System**: Support for MySQL, PostgreSQL, SQLite, SQL Server, and MongoDB
 - 📋 **Project Structure Generation**: For native PHP projects, offers to create a recommended directory structure
 - 🧹 **Environment Cleanup**: Easily removes all configured resources when no longer needed
 
@@ -199,7 +231,12 @@ Modular system for automatic orchestration and management of web development env
 - Linux operating system (tested on Ubuntu/Debian)
 - Apache 2.4 or higher
 - PHP 7.4 or higher (PHP 8.x recommended)
-- MySQL/MariaDB
+- At least one of the following database engines:
+  - MySQL/MariaDB
+  - PostgreSQL
+  - SQLite
+  - SQL Server
+  - MongoDB
 - Administrator privileges (sudo)
 
 ## 🔧 Installation
@@ -210,12 +247,19 @@ git clone https://github.com/your-username/apache-vhost-orchestrator.git
 cd apache-vhost-orchestrator
 ```
 
-2. Grant execution permissions to scripts:
+2. Set up the database module:
+```bash
+cd modules/database
+chmod +x setup.sh
+./setup.sh
+```
+
+3. Grant execution permissions to scripts:
 ```bash
 chmod +x bin/*.sh
 ```
 
-3. (Optional) Configure an alias for easy access:
+4. (Optional) Configure an alias for easy access:
 ```bash
 echo 'alias vhost-setup="sudo /path/to/apache-vhost-orchestrator/bin/setup-environment.sh"' >> ~/.bashrc
 echo 'alias vhost-clear="sudo /path/to/apache-vhost-orchestrator/bin/clear-environments.sh"' >> ~/.bashrc
@@ -236,7 +280,7 @@ The script will guide you through an interactive process to:
 3. Define a local domain (default is projectname.test)
 4. The script will automatically detect if it's a Laravel or native PHP project
 5. It will configure virtual hosts, DNS entries, permissions, Xdebug, etc.
-6. Optionally, it will create a MySQL database and user
+6. Optionally, it will detect available database engines and let you create a database with your preferred engine
 
 ### Clean up an environment
 
@@ -248,7 +292,7 @@ The script will ask for domains to clean up and will remove:
 - Apache virtual hosts
 - Entries in `/etc/hosts`
 - Project directories (optional)
-- MySQL databases and users (optional)
+- Databases and users from different engines (optional)
 
 ## 📂 Project Structure
 
@@ -263,6 +307,16 @@ apache-vhost-orchestrator/
 │   │   ├── detect.sh            # Core detection system
 │   │   ├── laravel.sh           # Laravel detector
 │   │   └── generic-php.sh       # Generic PHP support
+│   ├── database/                # Multi-engine database system
+│   │   ├── detect.sh            # Detection of available engines
+│   │   ├── create-db.sh         # Database creation
+│   │   ├── clean-db.sh          # Database cleanup
+│   │   └── engines/             # Engine-specific implementations
+│   │       ├── mysql.sh         # MySQL engine
+│   │       ├── postgresql.sh    # PostgreSQL engine
+│   │       ├── sqlite.sh        # SQLite engine
+│   │       ├── sqlserver.sh     # SQL Server engine
+│   │       └── mongodb.sh       # MongoDB engine
 │   └── xdebug/                  # Xdebug configuration
 │       └── configure.sh         # Intelligent Xdebug configuration
 └── templates/                   # Templates (for future use)
@@ -273,14 +327,14 @@ apache-vhost-orchestrator/
 The system follows SOLID principles:
 
 - **S (Single Responsibility)**: Each module has a single responsibility
-- **O (Open/Closed)**: The framework detection system is extensible without modifying existing code
-- **L (Liskov Substitution)**: Different framework detectors are interchangeable
+- **O (Open/Closed)**: The framework and database detection systems are extensible without modifying existing code
+- **L (Liskov Substitution)**: Different detectors and engines are interchangeable
 - **I (Interface Segregation)**: Functions are grouped coherently
 - **D (Dependency Inversion)**: High-level modules don't depend on implementation details
 
 ## ⚙️ Examples
 
-### Setting up an existing Laravel project
+### Setting up an existing Laravel project with database selection
 
 ```bash
 sudo ./bin/setup-environment.sh
@@ -300,27 +354,44 @@ Is this information correct? (y/n): y
 🔍 Detecting framework type...
    ✅ Framework detected: laravel
 
-# The script will automatically configure everything for a Laravel project
+🔍 Detecting available database engines...
+   ✅ MySQL detected
+   ✅ PostgreSQL detected
+   ✅ SQLite detected
+
+Do you want to create a database for this project? (y/n): y
+
+Select the database engine to use:
+1) mysql
+2) postgresql
+3) sqlite
+4) None
 ```
 
-### Setting up a native PHP project
+### Cleaning up a project with multiple databases
 
 ```bash
-sudo ./bin/setup-environment.sh
+sudo ./bin/clear-environments.sh
 ```
 
 ```
-# For an empty directory, it will offer to create a recommended structure
-The project directory is empty.
-Do you want to create a recommended structure for a PHP project? (y/n): y
+Enter the domain names to clean up: my-blog
 
-# For a directory with content, it will allow selecting the public directory
-The project directory already contains files.
-Select the directory that should be publicly accessible:
-1) /home/user/www/project (root directory)
-2) /home/user/www/project/public
-3) /home/user/www/project/htdocs
-...
+The following domains will be processed:
+  - my-blog.test
+Is this list correct? (y/n): y
+
+⚠️ WARNING: This will remove ALL traces of the selected environments!
+This includes:
+  - Apache virtual hosts
+  - Entries in /etc/hosts
+  - Project directories
+  - Databases (MySQL, PostgreSQL, SQLite, SQL Server, MongoDB)
+
+Are you sure you want to continue? (y/n): y
+
+# The script will proceed to remove resources and ask which database
+# engines you want to clean up for this project
 ```
 
 ## 📄 License
