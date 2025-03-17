@@ -1,4 +1,4 @@
-# 🚀 Apache VHOST Orchestrator
+# 🚀 Automatic VHOST Orchestrator (AVO)
 
 <p align="center">
   <img src="https://img.shields.io/badge/bash-5.1%2B-brightgreen" alt="Bash 5.1+">
@@ -9,7 +9,7 @@
 
 ---
 
-**🇪🇸 Español** | [🇬🇧 English](#-apache-vhost-orchestrator-1)
+**🇪🇸 Español** | [🇬🇧 English](#-automatic-vhost-orchestrator-1)
 
 Sistema modular para la orquestación y gestión automática de entornos de desarrollo web en servidores Apache. Optimizado para proyectos PHP y Laravel con configuración inteligente según el tipo de framework detectado.
 
@@ -41,8 +41,8 @@ Sistema modular para la orquestación y gestión automática de entornos de desa
 
 1. Clona el repositorio:
 ```bash
-git clone https://github.com/tu-usuario/apache-vhost-orchestrator.git
-cd apache-vhost-orchestrator
+git clone https://github.com/tu-usuario/automatic-vhost-orchestrator.git
+cd automatic-vhost-orchestrator
 ```
 
 2. Otorga permisos de ejecución a los scripts:
@@ -54,7 +54,7 @@ chmod +x modules/database/engines/*.sh
 
 3. (Opcional) Configura un alias para facilitar el acceso:
 ```bash
-echo 'alias vhost-manager="sudo /ruta/a/apache-vhost-orchestrator/bin/vhost-manager.sh"' >> ~/.bashrc
+echo 'alias vhost-manager="sudo /ruta/a/automatic-vhost-orchestrator/bin/vhost-manager.sh"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -103,7 +103,7 @@ sudo ./bin/clear-environments.sh
 ## 📂 Estructura del proyecto
 
 ```
-apache-vhost-orchestrator/
+automatic-vhost-orchestrator/
 ├── bin/                         # Scripts ejecutables
 │   ├── vhost-manager.sh         # Punto de entrada unificado
 │   ├── setup-environment.sh     # Script de configuración
@@ -148,7 +148,7 @@ sudo ./bin/vhost-manager.sh
 ```
 
 ```
-🚀 APACHE VHOST ORCHESTRATOR
+🚀 AUTOMATIC VHOST ORCHESTRATOR
 ➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖
 Sistema de gestión de entornos de desarrollo web
 Optimizado para proyectos PHP y Laravel
@@ -240,7 +240,7 @@ Es una de las licencias más permisivas y utilizadas en proyectos de código abi
 
 ---
 
-# 🚀 Apache VHOST Orchestrator
+# 🚀 AUTOMATIC VHOST Orchestrator
 
 <p align="center">
   <img src="https://img.shields.io/badge/bash-5.1%2B-brightgreen" alt="Bash 5.1+">
@@ -251,7 +251,7 @@ Es una de las licencias más permisivas y utilizadas en proyectos de código abi
 
 ---
 
-[🇪🇸 Español](#-apache-vhost-orchestrator) | **🇬🇧 English**
+[🇪🇸 Español](#-automatic-vhost-orchestrator) | **🇬🇧 English**
 
 Modular system for automatic orchestration and management of web development environments on Apache servers. Optimized for PHP and Laravel projects with intelligent configuration based on detected framework type.
 
@@ -283,8 +283,8 @@ Modular system for automatic orchestration and management of web development env
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/apache-vhost-orchestrator.git
-cd apache-vhost-orchestrator
+git clone https://github.com/your-username/automatic-vhost-orchestrator.git
+cd automatic-vhost-orchestrator
 ```
 
 2. Grant execution permissions to scripts:
@@ -296,7 +296,7 @@ chmod +x modules/database/engines/*.sh
 
 3. (Optional) Configure an alias for easy access:
 ```bash
-echo 'alias vhost-manager="sudo /path/to/apache-vhost-orchestrator/bin/vhost-manager.sh"' >> ~/.bashrc
+echo 'alias vhost-manager="sudo /path/to/automatic-vhost-orchestrator/bin/vhost-manager.sh"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -345,7 +345,7 @@ sudo ./bin/clear-environments.sh
 ## 📂 Project Structure
 
 ```
-apache-vhost-orchestrator/
+automatic-vhost-orchestrator/
 ├── bin/                         # Executable scripts
 │   ├── vhost-manager.sh         # Unified entry point
 │   ├── setup-environment.sh     # Setup script
@@ -390,7 +390,7 @@ sudo ./bin/vhost-manager.sh
 ```
 
 ```
-🚀 APACHE VHOST ORCHESTRATOR
+🚀 AUTOMATIC VHOST ORCHESTRATOR
 ➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖
 Web development environment management system
 Optimized for PHP and Laravel projects
