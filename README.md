@@ -2,32 +2,33 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/bash-5.1%2B-brightgreen" alt="Bash 5.1+">
-  <img src="https://img.shields.io/badge/Apache-2.4%2B-red" alt="Apache 2.4+">
+  <img src="https://img.shields.io/badge/Web%20Servers-Compatible-red" alt="Web Servers">
   <img src="https://img.shields.io/badge/PHP-7.4%2B-blue" alt="PHP 7.4+">
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License MIT">
 </p>
 
 ---
 
-**🇪🇸 Español** | [🇬🇧 English](#-automatic-vhost-orchestrator-1)
+**🇪🇸 Español** | [🇬🇧 English](#-automatic-vhost-orchestrator-avo-1)
 
-Sistema modular para la orquestación y gestión automática de entornos de desarrollo web en servidores Apache. Optimizado para proyectos PHP y Laravel con configuración inteligente según el tipo de framework detectado.
+Sistema modular para la orquestación y gestión automática de entornos de desarrollo web. Optimizado para proyectos PHP y Laravel con configuración inteligente según el tipo de framework detectado, compatible con diversos servidores web.
 
 ## ✨ Características principales
 
 - 🔍 **Detección inteligente de frameworks**: Identifica automáticamente si el proyecto usa Laravel o PHP nativo
-- 🌐 **Configuración de dominio local**: Configura automáticamente entradas en `/etc/hosts` y hosts virtuales de Apache
+- 🌐 **Configuración de dominio local**: Configura automáticamente entradas en `/etc/hosts` y hosts virtuales en tu servidor web
 - 🔒 **Gestión de permisos**: Establece los permisos adecuados según el tipo de proyecto
 - 🐞 **Configuración de Xdebug**: Instala y configura Xdebug de forma inteligente sin sobrescribir configuraciones personalizadas
 - 🗄️ **Sistema multi-motor de bases de datos**: Soporte para MySQL, PostgreSQL, SQLite, SQL Server y MongoDB
 - 📋 **Generación de estructura de proyectos**: Para proyectos PHP nativos, ofrece crear una estructura recomendada de directorios
 - 🧹 **Limpieza de entornos**: Elimina fácilmente todos los recursos configurados cuando ya no se necesitan
 - 🔄 **Punto de entrada unificado**: Interfaz interactiva que simplifica tanto la creación como la limpieza de entornos
+- 🔌 **Arquitectura extensible**: Diseñado para soportar múltiples servidores web mediante un sistema de módulos
 
 ## 📋 Requisitos previos
 
 - Sistema operativo Linux (probado en Ubuntu/Debian)
-- Apache 2.4 o superior
+- Servidor web instalado (actualmente compatible con Apache, con soporte para más servidores en desarrollo)
 - PHP 7.4 o superior (recomendado PHP 8.x)
 - Al menos uno de los siguientes motores de bases de datos:
   - MySQL/MariaDB
@@ -114,6 +115,10 @@ automatic-vhost-orchestrator/
 │   │   ├── detect.sh            # Sistema central de detección
 │   │   ├── laravel.sh           # Detector de Laravel
 │   │   └── generic-php.sh       # Soporte para PHP genérico
+│   ├── webserver/               # Módulos para diferentes servidores web
+│   │   ├── detect.sh            # Detección de servidores instalados
+│   │   ├── apache.sh            # Configuración para Apache
+│   │   └── [otros].sh           # Soporte para otros servidores web
 │   ├── database/                # Sistema multi-motor de bases de datos
 │   │   ├── detect.sh            # Detección de motores disponibles
 │   │   ├── create-db.sh         # Creación de bases de datos
@@ -134,10 +139,28 @@ automatic-vhost-orchestrator/
 El sistema sigue los principios SOLID:
 
 - **S (Responsabilidad Única)**: Cada módulo tiene una única responsabilidad
-- **O (Abierto/Cerrado)**: Los sistemas de detección de frameworks y bases de datos son extensibles sin modificar el código existente
+- **O (Abierto/Cerrado)**: Los sistemas de detección de frameworks, servidores web y bases de datos son extensibles sin modificar el código existente
 - **L (Sustitución de Liskov)**: Los diferentes detectores y motores son intercambiables
 - **I (Segregación de Interfaces)**: Las funciones están agrupadas de manera coherente
 - **D (Inversión de Dependencias)**: Los módulos de alto nivel no dependen de los detalles de implementación
+
+## 🔌 Extensibilidad para servidores web
+
+AVO está diseñado con una arquitectura que permite añadir soporte para diferentes servidores web mediante módulos independientes:
+
+- Cada servidor web tiene su propio módulo en `modules/webserver/`
+- La detección automática del servidor instalado facilita la configuración
+- Interfaces comunes para operaciones de configuración y limpieza
+- Documentación específica sobre cómo implementar soporte para nuevos servidores
+
+Ejemplos de servidores web que se pueden integrar en el sistema (actuales o futuros):
+- Apache HTTP Server
+- Nginx
+- Caddy
+- Lighttpd
+- Cherokee
+- LiteSpeed
+- y cualquier otro servidor web que soporte hosts virtuales
 
 ## ⚙️ Ejemplos
 
@@ -183,6 +206,9 @@ Dominio local: mi-blog.test
 🔍 Detectando tipo de framework...
    ✅ Framework detectado: laravel
 
+🔍 Detectando servidores web disponibles...
+   ✅ Apache detectado
+
 🔍 Detectando motores de bases de datos disponibles...
    ✅ MySQL detectado
    ✅ PostgreSQL detectado
@@ -212,7 +238,7 @@ Se procesarán los siguientes dominios:
 
 ⚠️ ADVERTENCIA: ¡Esto eliminará TODOS los rastros de los entornos seleccionados!
 Esto incluye:
-  - Hosts virtuales de Apache
+  - Hosts virtuales del servidor web
   - Entradas en /etc/hosts
   - Directorios de proyectos
   - Bases de datos (MySQL, PostgreSQL, SQLite, SQL Server, MongoDB)
@@ -240,36 +266,37 @@ Es una de las licencias más permisivas y utilizadas en proyectos de código abi
 
 ---
 
-# 🚀 AUTOMATIC VHOST Orchestrator
+# 🚀 Automatic VHOST Orchestrator (AVO)
 
 <p align="center">
   <img src="https://img.shields.io/badge/bash-5.1%2B-brightgreen" alt="Bash 5.1+">
-  <img src="https://img.shields.io/badge/Apache-2.4%2B-red" alt="Apache 2.4+">
+  <img src="https://img.shields.io/badge/Web%20Servers-Compatible-red" alt="Web Servers">
   <img src="https://img.shields.io/badge/PHP-7.4%2B-blue" alt="PHP 7.4+">
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License MIT">
 </p>
 
 ---
 
-[🇪🇸 Español](#-automatic-vhost-orchestrator) | **🇬🇧 English**
+[🇪🇸 Español](#-automatic-vhost-orchestrator-avo) | **🇬🇧 English**
 
-Modular system for automatic orchestration and management of web development environments on Apache servers. Optimized for PHP and Laravel projects with intelligent configuration based on detected framework type.
+Modular system for automatic orchestration and management of web development environments. Optimized for PHP and Laravel projects with intelligent configuration based on detected framework type, compatible with various web servers.
 
 ## ✨ Key Features
 
 - 🔍 **Intelligent Framework Detection**: Automatically identifies if the project uses Laravel or native PHP
-- 🌐 **Local Domain Configuration**: Automatically configures entries in `/etc/hosts` and Apache virtual hosts
+- 🌐 **Local Domain Configuration**: Automatically configures entries in `/etc/hosts` and virtual hosts in your web server
 - 🔒 **Permission Management**: Sets appropriate permissions based on project type
 - 🐞 **Xdebug Configuration**: Intelligently installs and configures Xdebug without overwriting custom configurations
 - 🗄️ **Multi-engine Database System**: Support for MySQL, PostgreSQL, SQLite, SQL Server, and MongoDB
 - 📋 **Project Structure Generation**: For native PHP projects, offers to create a recommended directory structure
 - 🧹 **Environment Cleanup**: Easily removes all configured resources when no longer needed
 - 🔄 **Unified Entry Point**: Interactive interface that simplifies both environment creation and cleanup
+- 🔌 **Extensible Architecture**: Designed to support multiple web servers through a modular system
 
 ## 📋 Prerequisites
 
 - Linux operating system (tested on Ubuntu/Debian)
-- Apache 2.4 or higher
+- Web server installed (currently compatible with Apache, with support for more servers in development)
 - PHP 7.4 or higher (PHP 8.x recommended)
 - At least one of the following database engines:
   - MySQL/MariaDB
@@ -356,6 +383,10 @@ automatic-vhost-orchestrator/
 │   │   ├── detect.sh            # Core detection system
 │   │   ├── laravel.sh           # Laravel detector
 │   │   └── generic-php.sh       # Generic PHP support
+│   ├── webserver/               # Modules for different web servers
+│   │   ├── detect.sh            # Detection of installed servers
+│   │   ├── apache.sh            # Configuration for Apache
+│   │   └── [others].sh          # Support for other web servers
 │   ├── database/                # Multi-engine database system
 │   │   ├── detect.sh            # Detection of available engines
 │   │   ├── create-db.sh         # Database creation
@@ -376,10 +407,28 @@ automatic-vhost-orchestrator/
 The system follows SOLID principles:
 
 - **S (Single Responsibility)**: Each module has a single responsibility
-- **O (Open/Closed)**: The framework and database detection systems are extensible without modifying existing code
+- **O (Open/Closed)**: The framework, web server, and database detection systems are extensible without modifying existing code
 - **L (Liskov Substitution)**: Different detectors and engines are interchangeable
 - **I (Interface Segregation)**: Functions are grouped coherently
 - **D (Dependency Inversion)**: High-level modules don't depend on implementation details
+
+## 🔌 Extensibility for Web Servers
+
+AVO is designed with an architecture that allows adding support for different web servers through independent modules:
+
+- Each web server has its own module in `modules/webserver/`
+- Automatic detection of the installed server facilitates configuration
+- Common interfaces for configuration and cleanup operations
+- Specific documentation on how to implement support for new servers
+
+Examples of web servers that can be integrated into the system (current or future):
+- Apache HTTP Server
+- Nginx
+- Caddy
+- Lighttpd
+- Cherokee
+- LiteSpeed
+- and any other web server that supports virtual hosts
 
 ## ⚙️ Examples
 
@@ -425,6 +474,9 @@ Is this information correct? (y/n): y
 🔍 Detecting framework type...
    ✅ Framework detected: laravel
 
+🔍 Detecting available web servers...
+   ✅ Apache detected
+
 🔍 Detecting available database engines...
    ✅ MySQL detected
    ✅ PostgreSQL detected
@@ -454,7 +506,7 @@ Is this list correct? (y/n): y
 
 ⚠️ WARNING: This will remove ALL traces of the selected environments!
 This includes:
-  - Apache virtual hosts
+  - Web server virtual hosts
   - Entries in /etc/hosts
   - Project directories
   - Databases (MySQL, PostgreSQL, SQLite, SQL Server, MongoDB)
